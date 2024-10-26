@@ -8,6 +8,8 @@ let userID = 'd342d11e-d424-4583-b36e-524ab1f0afa4';
 
 let proxyIP = '';
 
+let baseUrl = '';
+
 
 if (!isValidUUID(userID)) {
 	throw new Error('uuid is not valid');
@@ -22,15 +24,16 @@ export default {
 	 */
 	async fetch(request, env, ctx) {
 		try {
+			baseUrl = (env.BASEURL || baseUrl).replace(/\/+$/, '');
 			userID = env.UUID || userID;
 			proxyIP = env.PROXYIP || proxyIP;
 			const upgradeHeader = request.headers.get('Upgrade');
 			if (!upgradeHeader || upgradeHeader !== 'websocket') {
 				const url = new URL(request.url);
 				switch (url.pathname) {
-					case '/':
+					case `${baseUrl}`:
 						return new Response(JSON.stringify(request.cf), { status: 200 });
-					case `/${userID}`: {
+					case `${baseUrl}/${userID}`: {
 						const vlessConfig = getVLESSConfig(userID, request.headers.get('Host'));
 						return new Response(`${vlessConfig}`, {
 							status: 200,
